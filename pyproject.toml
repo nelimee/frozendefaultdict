@@ -1,7 +1,7 @@
 [project]
 name = "frozendefaultdict"
 version = "1.0.0"
-description = "Python implementation of a frozen (immutable) default dictionary"
+description = "Python implementation of a frozen (immutable) default dictionary."
 readme = "README.md"
 authors = [
     { name = "Adrien Suau", email = "12374487+nelimee@users.noreply.github.com" },
