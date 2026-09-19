@@ -1,0 +1,24 @@
+[project]
+name = "frozendefaultdict"
+version = "1.0.0"
+description = "Python implementation of a frozen (immutable) default dictionary"
+readme = "README.md"
+authors = [
+    { name = "Adrien Suau", email = "12374487+nelimee@users.noreply.github.com" },
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+lint = ["ruff==0.16.8", "ty==0.0.82", "mypy>=2,<3", "pydoclint>=0.8,<0.10"]
+test = ["pytest>= 9,<10", "pytest-cov>=7,<8"]
+dev = [{ include-group = "lint" }, { include-group = "test" }]
+all = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "dev" },
+]
+
+[build-system]
+requires      = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"

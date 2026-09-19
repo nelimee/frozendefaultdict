@@ -1,0 +1,42 @@
+include = ["src/frozendefaultdict/**/*.py", "tests/**/*.py"]
+
+# Same as Black.
+line-length  = 88
+indent-width = 4
+
+# Assume Python 3.10
+target-version = "py310"
+
+[lint]
+select = [
+    "A", "ARG", "B", "C4", "E", "EM", "EXE", "F", "FURB", "G", "I", "ICN", "N", "NPY", "PD",
+    "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RUF", "SIM", "T", "UP", "W", "YTT"
+]
+
+# Specific per-file ignores
+[lint.per-file-ignores]
+"tests/**/*.py" = [
+    # Magic values in tests are fine.
+    "PLR2004",
+]
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Unlike Black, reformat magic trailing commas if needed.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+docstring-code-format = true
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+docstring-code-line-length = "dynamic"
