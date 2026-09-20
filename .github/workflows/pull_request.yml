@@ -51,7 +51,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.10', '3.14']
-        dependency-resolution: ['highest', 'lowest-direct']
+        dependency-resolution: ['highest']  # 'lowest-direct' to add to the list if any dependency is added to the package
     env:
       ENABLE_COVERAGE: ${{ (matrix.python-version == '3.10') && (matrix.dependency-resolution == 'highest') }}
     runs-on: ${{ matrix.os }}
