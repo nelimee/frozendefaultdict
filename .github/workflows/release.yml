@@ -1,0 +1,123 @@
+name: Build, test, and publish stable wheels on PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+
+  build:
+    name: Build distributions
+    runs-on: ubuntu-slim
+    steps:
+      - name: Check out frozendefaultdict
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+    
+      - name: Build frozendefaultdict package
+        run: uv build -o ./dist
+
+      - name: Upload wheels artefacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: frozendefaultdict
+          path: ./dist/
+          retention-days: 1
+
+  test-wheels:
+    name: Full test on ${{ matrix.os }} for wheel
+    needs: [build]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        dependency-resolution: ['highest', 'lowest-direct']
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        
+      - name: Recover frozendefaultdict distribution files
+        uses: actions/download-artifact@v8
+        with:
+          pattern: frozendefaultdict
+          path: ./dist/
+
+      - name: Install in Unix-like systems
+        if: matrix.os != 'windows-latest'
+        run: |
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install --pre dist/*.whl pytest
+
+      - name: Install on Windows OS
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install --pre (Get-ChildItem dist/*.whl).FullName pytest
+
+      - name: Check that the package can be imported
+        run: uv run --with frozendefaultdict --no-project -- python -c "from frozendefaultdict import frozendefaultdict"
+
+      - name: Run tests
+        run: uv run --no-sync pytest
+
+  test-sdists:
+    name: Minimal test on ubuntu-latest for source build
+    needs: [build]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        
+      - name: Recover frozendefaultdict distribution files
+        uses: actions/download-artifact@v8
+        with:
+          pattern: frozendefaultdict
+          path: ./dist/
+
+      - name: Install package
+        run: |
+          uv venv --python 3.10
+          uv pip install --pre dist/*.tar.gz pytest
+
+      - name: Check that the package can be imported
+        run: uv run --with frozendefaultdict --no-project -- python -c "from frozendefaultdict import frozendefaultdict"
+
+      - name: Run tests
+        run: uv run --no-sync pytest
+
+  publish:
+    name: Publish Python distribution to PyPI
+    needs: [test-wheels, test-sdists]
+
+    runs-on: ubuntu-slim
+    environment:
+      name: pypi
+      url: https://pypi.org/p/frozendefaultdict
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        
+      - name: Recover frozendefaultdict distribution files
+        uses: actions/download-artifact@v8
+        with:
+          pattern: frozendefaultdict
+          path: ./dist/
+
+      - name: Publish distribution to PyPI
+        run: uv publish --trusted-publishing always

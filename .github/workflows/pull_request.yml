@@ -1,0 +1,69 @@
+name: pull_request
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out frozendefaultdict
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+          
+      - name: Install the project
+        run: uv sync --all-extras
+
+      - name: Check types with mypy
+        run: uv run mypy
+
+      - name: Check types with ty
+        run: uv run ty check
+
+      - name: Check code formatting
+        run: uv run ruff format --check
+
+      - name: Check code linting
+        run: uv run ruff check
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10', '3.14']
+        dependency-resolution: ['highest', 'lowest-direct']
+    env:
+      ENABLE_COVERAGE: ${{ (matrix.python-version == '3.10') && (matrix.dependency-resolution == 'highest') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out frozendefaultdict
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Setup and sync virtual environment
+        run: uv sync --python ${{ matrix.python-version }} --resolution ${{matrix.dependency-resolution}} --group test
+
+      - name: Run all the unit tests
+        run: uv run --no-sync pytest
