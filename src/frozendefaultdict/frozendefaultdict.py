@@ -13,19 +13,21 @@ from typing import Any, TypeVar
 from typing_extensions import override
 
 K = TypeVar("K", bound=Hashable)
-V = TypeVar("V")
+Kp = TypeVar("Kp", bound=Hashable)
+V_co = TypeVar("V_co", covariant=True)
 Vp = TypeVar("Vp")
 
 
-class frozendefaultdict(Mapping[K, V]):  # noqa: N801
+class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
     """Immutable, hashable mapping with an optional default value.
 
     Unlike :class:`~collections.defaultdict`, accessing a missing key does **not**
     mutate the container, it either returns the pre-configured ``default_value`` or
     raises :class:`KeyError`.
 
-    Because the internal state never changes, and if the default value is hashable,
-    instances are hashable and safe to use as dictionary keys or inside sets.
+    Because the internal state never changes, and if the stored values (including the
+    default value) are hashable, instances are hashable and safe to use as dictionary
+    keys or inside sets.
 
     Examples::
 
@@ -49,12 +51,12 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
 
     def __init__(
         self,
-        arg: Mapping[K, V] | Iterable[tuple[K, V]] | None = None,
+        arg: Mapping[K, V_co] | Iterable[tuple[K, V_co]] | None = None,
         *,
-        default_value: V | None = None,
+        default_value: V_co | None = None,
     ) -> None:
         super().__init__()
-        self._dict: dict[K, V] = dict(arg) if arg is not None else {}
+        self._dict: dict[K, V_co] = dict(arg) if arg is not None else {}
         self._default_value = default_value
 
     # region Required abstract method
@@ -72,13 +74,13 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         return self._dict.__contains__(key)
 
     @override
-    def __getitem__(self, key: K) -> V:
+    def __getitem__(self, key: K) -> V_co:
         try:
             return self._dict[key]
         except KeyError:
             return self.__missing__(key)
 
-    def __missing__(self, key: K) -> V:
+    def __missing__(self, key: K) -> V_co:
         """Return the default value, or raise :class:`KeyError`.
 
         Called by :meth:`__getitem__` when ``key`` is not in the mapping. Returns
@@ -104,7 +106,7 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
 
     # region Convenience methods
 
-    def __or__(self, other: Mapping[K, V]) -> frozendefaultdict[K, V]:
+    def __or__(self, other: Mapping[Kp, Vp]) -> frozendefaultdict[K | Kp, V_co | Vp]:
         """Merge with ``other``, returning a new :class:`frozendefaultdict`.
 
         This method has the same semantic has ``dict.__or__`` (``self | other``). In
@@ -112,16 +114,21 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         to the value in ``other`` (``other`` overwrites ``self``). This also applies to
         the stored ``default_value``.
         """
-        mapping = deepcopy(self._dict)
-        mapping.update(other)
-        default_value: V | None = (
-            other.default_value
-            if isinstance(other, frozendefaultdict)
-            else self.default_value
+        mapping = dict[K | Kp, V_co | Vp]()
+        for self_key, self_value in self._dict.items():
+            mapping[self_key] = self_value
+        for other_key, other_value in other.items():
+            mapping[other_key] = other_value
+        return frozendefaultdict(
+            mapping,
+            default_value=(
+                other.default_value
+                if isinstance(other, frozendefaultdict)
+                else self.default_value
+            ),
         )
-        return frozendefaultdict(mapping, default_value=default_value)
 
-    def __ror__(self, other: Mapping[K, V]) -> frozendefaultdict[K, V]:
+    def __ror__(self, other: Mapping[Kp, Vp]) -> frozendefaultdict[K | Kp, V_co | Vp]:
         """Merge with ``other``, returning a new :class:`frozendefaultdict`.
 
         This method has the same semantic has ``dict.__ror__`` (``other | self``). In
@@ -135,12 +142,14 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         assert not isinstance(other, frozendefaultdict), (
             "Should be handled by other.__or__."
         )
-        mapping = dict(other)
-        mapping.update(self._dict)
-        default_value = self._default_value
-        return frozendefaultdict(mapping, default_value=default_value)
+        mapping: dict[K | Kp, V_co | Vp] = {}
+        for key, value in other.items():
+            mapping[key] = value
+        for self_key, self_value in self._dict.items():
+            mapping[self_key] = self_value
+        return frozendefaultdict(mapping, default_value=self._default_value)
 
-    def __ior__(self, other: Mapping[K, V]) -> frozendefaultdict[K, V]:
+    def __ior__(self, other: Mapping[Kp, Vp]) -> frozendefaultdict[K | Kp, V_co | Vp]:
         """Merge with ``other``, returning a new :class:`frozendefaultdict`.
 
         This method has the same semantic has ``dict.__ior__`` (``self |= other``). In
@@ -166,7 +175,7 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
             self._default_value == other._default_value
         ) and self._dict == other._dict
 
-    def copy(self) -> frozendefaultdict[K, V]:
+    def copy(self) -> frozendefaultdict[K, V_co]:
         """Return a copy of ``self``.
 
         Because ``self`` is immutable, this method returns ``self`` without actually
@@ -174,7 +183,7 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         """
         return self
 
-    def __copy__(self) -> frozendefaultdict[K, V]:
+    def __copy__(self) -> frozendefaultdict[K, V_co]:
         """Return a copy of ``self``.
 
         Because ``self`` is immutable, this method returns ``self`` without actually
@@ -182,15 +191,15 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         """
         return self
 
-    def deepcopy(self) -> frozendefaultdict[K, V]:
+    def deepcopy(self) -> frozendefaultdict[K, V_co]:
         """Return a deep-copy of ``self``."""
-        return frozendefaultdict[K, V](
+        return frozendefaultdict[K, V_co](
             deepcopy(self._dict), default_value=deepcopy(self._default_value)
         )
 
-    def __deepcopy__(self, memo: dict[int, Any]) -> frozendefaultdict[K, V]:
+    def __deepcopy__(self, memo: dict[int, Any]) -> frozendefaultdict[K, V_co]:
         """Return a deep-copy of ``self``."""
-        return frozendefaultdict[K, V](
+        return frozendefaultdict[K, V_co](
             deepcopy(self._dict, memo),
             default_value=deepcopy(self._default_value, memo),
         )
@@ -207,11 +216,11 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         return self._default_value is not None
 
     @property
-    def default_value(self) -> V | None:
+    def default_value(self) -> V_co | None:
         """The default value, or ``None`` if none was provided."""
         return self._default_value
 
-    def map_keys(self, func: Callable[[K], K]) -> frozendefaultdict[K, V]:
+    def map_keys(self, func: Callable[[K], K]) -> frozendefaultdict[K, V_co]:
         """Return a new instance with every key replaced by ``func(key)``.
 
         Values and the default value stay unchanged.
@@ -222,11 +231,11 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
         Returns:
             a new :class:`frozendefaultdict` with transformed keys.
         """
-        return frozendefaultdict[K, V](
+        return frozendefaultdict[K, V_co](
             {func(k): v for k, v in self.items()}, default_value=self._default_value
         )
 
-    def map_values(self, func: Callable[[V], Vp]) -> frozendefaultdict[K, Vp]:
+    def map_values(self, func: Callable[[V_co], Vp]) -> frozendefaultdict[K, Vp]:
         """Return a new instance with every value replaced by ``func(value)``.
 
         If a default value is set, it is also transformed through ``func``. Keys stay
@@ -245,7 +254,7 @@ class frozendefaultdict(Mapping[K, V]):  # noqa: N801
             {k: func(v) for k, v in self.items()}, default_value=default_value
         )
 
-    def map_keys_if_present(self, mapping: Mapping[K, K]) -> frozendefaultdict[K, V]:
+    def map_keys_if_present(self, mapping: Mapping[K, K]) -> frozendefaultdict[K, V_co]:
         """Rename keys using ``mapping``, keeping only keys present in ``mapping``.
 
         For each key ``k`` in ``self``, if ``k`` is also in ``mapping`` the entry is
