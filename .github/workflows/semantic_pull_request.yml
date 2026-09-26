@@ -1,12 +1,18 @@
 name: Check Pull Request Title
 
 on:
-  pull_request:
-    branches: [main]
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
 
 jobs:
   semantic_pull_request:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
+    permissions:
+      pull-requests: read
     steps:
       # Uses https://github.com/amannn/action-semantic-pull-request
       - name: Check PR title uses conventional commit spec
