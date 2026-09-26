@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Adrien Suau", email = "12374487+nelimee@users.noreply.github.com" },
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = []
 
 [dependency-groups]
@@ -24,8 +24,8 @@ requires = ["uv_build>=0.12.10,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.mypy]
-python_version = "3.10"
-files          = "src/**/*.py,tests/**/*.py"
+python_version = "3.11"
+files = "src/**/*.py,tests/**/*.py"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
