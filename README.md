@@ -90,3 +90,9 @@ fdd7 = fdd.map_keys_if_present({0: 4, 923874: 9023784})
 print(fdd7)
 # frozendefaultdict({4: 1}, default_value=98)
 ```
+
+# Usage of LLMs
+
+A LLM has been used at the very beginning of the project to generate some tests. Since then the tests have been extensively modified (some were added, some were removed, some existings tests were modified).
+
+Everything else (including the documentation and the actual package code) has been crafted with love and passion by a human.
