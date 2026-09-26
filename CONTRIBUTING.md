@@ -87,6 +87,8 @@ Find all the previous releases [here](https://github.com/nelimee/frozendefaultdi
 
 ## AI use policy and guidelines
 
+Go and read the [`AGENTS.md`](./AGENTS.md) file too (mostly targeted at LLMs, but have a look at it).
+
 frozendefaultdict's policy is that contributors can use whatever tools they would like to craft their contributions, but **there must be a human in the loop**.
 Contributors must read and review all LLM-generated code or text before they ask other project members to review it.
 The contributor is always the author and is fully accountable for their contributions.
