@@ -34,26 +34,26 @@ jobs:
         run: uv sync --all-extras
 
       - name: Check types with mypy
-        run: uv run mypy
+        run: uv run --no-sync mypy
 
       - name: Check types with ty
-        run: uv run ty check
+        run: uv run --no-sync ty check
 
       - name: Check code formatting
-        run: uv run ruff format --check
+        run: uv run --no-sync ruff format --check
 
       - name: Check code linting
-        run: uv run ruff check
+        run: uv run --no-sync ruff check
 
   test:
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10', '3.14']
+        python-version: ['3.11', '3.14']
         dependency-resolution: ['highest']  # 'lowest-direct' to add to the list if any dependency is added to the package
     env:
-      ENABLE_COVERAGE: ${{ (matrix.python-version == '3.10') && (matrix.dependency-resolution == 'highest') }}
+      ENABLE_COVERAGE: ${{ (matrix.python-version == '3.11') && (matrix.dependency-resolution == 'highest') }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out frozendefaultdict
