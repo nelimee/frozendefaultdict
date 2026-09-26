@@ -29,20 +29,35 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
     default value) are hashable, instances are hashable and safe to use as dictionary
     keys or inside sets.
 
+    This class stores a shallow copy of the provided mapping. This means that any
+    modification to the mapping used to initialise it will not be reflected on the
+    :class:`frozendefaultdict` instance, but any modification to keys or values will be.
+    It is the user responsibility to ensure that keys are not mutated.
+
     Examples::
 
-        >>> fdd = frozendefaultdict({"a": 1, "b": 2}, default_value=0)
+        >>> mapping = {"a": 1, "b": 2, "c": {0: 1}}
+        >>> fdd = frozendefaultdict(mapping, default_value=0)
         >>> fdd["a"]
         1
+        >>> fdd["c"]
+        {0: 1}
         >>> fdd["missing"]
         0
         >>> "missing" in fdd  # the above line did not add the key, unlike defaultdict
         False
+        >>> mapping["d"] = 1
+        >>> fdd["d"]  # mutating the mapping doesn't affect the frozendefaultdict
+        0
+        >>> mapping["c"][0] = 78
+        >>> fdd["c"]  # only a shallow copy is performed, the stored value is modified.
+        {0: 78}
 
     Args:
         arg: Initial data, either a mapping or an iterable of ``(key, value)`` pairs.
             Keys absent from ``arg`` will be implicitly associated with
-            ``default_value`` if it is not ``None``.
+            ``default_value`` if it is not ``None``. Keys and values are not copied, it
+            is the responsibility of the user to ensure that keys are not mutated.
         default_value: Value returned (without copying) when a key not present in
             ``arg`` is queried. If ``None``, missing-key access raises
             :class:`KeyError`.
