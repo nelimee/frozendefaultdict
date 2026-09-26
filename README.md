@@ -96,3 +96,5 @@ print(fdd7)
 A LLM has been used at the very beginning of the project to generate some tests. Since then the tests have been extensively modified (some were added, some were removed, some existings tests were modified).
 
 Everything else (including the documentation and the actual package code) has been crafted with love and passion by a human and no LLM has been involved in their development.
+
+Mini change
