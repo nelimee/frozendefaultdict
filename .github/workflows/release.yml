@@ -38,7 +38,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.11', '3.12', '3.13', '3.14']
-        dependency-resolution: ['highest']  # 'lowest-direct' to add to the list if any dependency is added to the package
+        dependency-resolution: ['highest', 'lowest-direct']
 
     runs-on: ${{ matrix.os }}
 
@@ -66,7 +66,7 @@ jobs:
           uv pip install --pre (Get-ChildItem dist/*.whl).FullName pytest
 
       - name: Check that the package can be imported
-        run: uv run --with frozendefaultdict --no-project -- python -c "from frozendefaultdict import frozendefaultdict"
+        run: uv run --no-sync -- python -c "from frozendefaultdict import frozendefaultdict"
 
       - name: Run tests
         run: uv run --no-sync pytest

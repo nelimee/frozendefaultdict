@@ -220,6 +220,9 @@ wheels = [
 name = "frozendefaultdict"
 version = "0.1.0"
 source = { editable = "." }
+dependencies = [
+    { name = "typing-extensions" },
+]
 
 [package.dev-dependencies]
 all = [
@@ -250,6 +253,7 @@ test = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "typing-extensions", specifier = ">=4.0,<5" }]
 
 [package.metadata.requires-dev]
 all = [

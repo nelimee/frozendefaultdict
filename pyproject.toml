@@ -7,7 +7,7 @@ authors = [
     { name = "Adrien Suau", email = "12374487+nelimee@users.noreply.github.com" },
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["typing-extensions>=4.0,<5"]
 
 [dependency-groups]
 lint = ["ruff==0.16.8", "ty==0.0.82", "mypy>=2,<3", "pydoclint>=0.8,<0.10"]
