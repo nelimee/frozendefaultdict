@@ -47,7 +47,6 @@ jobs:
 
 
   test-imports:
-    name: Tests that the library can be imported
     runs-on: ubuntu-slim
     steps:
       - name: Check out frozendefaultdict
