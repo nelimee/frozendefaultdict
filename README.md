@@ -1,3 +1,5 @@
+*This package and data-structure implementation originally comes from the [TQEC library](https://github.com/tqec/tqec): [frozendefaultdict.py](https://github.com/tqec/tqec/blob/7842f6d3a0f36ad3a31f15d25a3547e5370c8b5c/src/tqec/utils/frozendefaultdict.py).*
+
 # Introduction
 
 This package introduces a new data-structure that is mix of `frozendict` introduced in Python 3.15 ([PEP 814](https://peps.python.org/pep-0814/)) and `collections.defaultdict`, with small changes to the API to make it more usable.
