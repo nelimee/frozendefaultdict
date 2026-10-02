@@ -194,4 +194,4 @@ jobs:
           git push origin "$TAG"
 
       - name: Create GitHub release with generated notes
-        run: uvx --from 'python-semantic-release$PYTHON_SEMANTIC_RELEASE_VERSION_SPECIFIER' semantic-release changelog --post-to-release-tag "$TAG"
+        run: uvx --from "python-semantic-release$PYTHON_SEMANTIC_RELEASE_VERSION_SPECIFIER" semantic-release changelog --post-to-release-tag "$TAG"
