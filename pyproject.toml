@@ -11,7 +11,7 @@ dependencies = ["typing-extensions>=4.0,<5"]
 
 [dependency-groups]
 lint = ["ruff==0.16.8", "ty==0.0.82", "mypy>=2,<3", "pydoclint>=0.8,<0.10"]
-test = ["pytest>= 9,<10", "pytest-cov>=7,<8"]
+test = ["pytest>=9,<10", "pytest-cov>=7,<8"]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
 all = [
     { include-group = "lint" },
