@@ -1,6 +1,6 @@
 [project]
 name = "frozendefaultdict"
-version = "0.1.1"
+version = "0.1.0"
 description = "Python implementation of a frozen (immutable) default dictionary."
 readme = "README.md"
 authors = [
@@ -29,3 +29,10 @@ files = "src/**/*.py,tests/**/*.py"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+tag_format = "v{version}"
+commit_parser = "conventional"
+allow_zero_version = true
+major_on_zero = true
