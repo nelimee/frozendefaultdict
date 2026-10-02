@@ -1,16 +1,52 @@
 name: Build, test, and publish stable wheels on PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+    paths: [pyproject.toml]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
 
+  check-version:
+    name: Check for a version bump
+    runs-on: ubuntu-slim
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.tag.outputs.release }}
+    steps:
+      - name: Check out frozendefaultdict
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Read package version
+        id: version
+        run: |
+          echo "version=$(uv version --short)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if the version is already released
+        id: tag
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v${{ steps.version.outputs.version }}"; then
+            echo "Tag v${{ steps.version.outputs.version }} already exists, nothing to release."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build distributions
+    needs: [check-version]
+    if: needs.check-version.outputs.release == 'true'
     runs-on: ubuntu-slim
     steps:
       - name: Check out frozendefaultdict
@@ -37,12 +73,18 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.11', '3.12', '3.13', '3.14', '3.15']
         dependency-resolution: ['highest', 'lowest-direct']
 
     runs-on: ${{ matrix.os }}
 
     steps:
+      # Only tests/ and root files: src/ must not shadow the installed wheel.
+      - name: Check out tests
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: tests
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         
@@ -52,24 +94,16 @@ jobs:
           pattern: frozendefaultdict
           path: ./dist/
 
-      - name: Install in Unix-like systems
-        if: matrix.os != 'windows-latest'
+      - name: Install the package
         run: |
           uv venv --python ${{ matrix.python-version }}
-          uv pip install --pre dist/*.whl pytest
-
-      - name: Install on Windows OS
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          uv venv --python ${{ matrix.python-version }}
-          uv pip install --pre (Get-ChildItem dist/*.whl).FullName pytest
+          uv pip install --resolution ${{ matrix.dependency-resolution }} dist/*.whl pytest
 
       - name: Check that the package can be imported
         run: uv run --no-sync -- python -c "from frozendefaultdict import frozendefaultdict"
 
       - name: Run tests
-        run: uv run --no-sync pytest
+        run: uv run --no-sync pytest tests
 
   test-sdists:
     name: Minimal test on ubuntu-latest for source build
@@ -78,6 +112,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check out tests
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: tests
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         
@@ -90,13 +129,13 @@ jobs:
       - name: Install package
         run: |
           uv venv --python 3.11
-          uv pip install --pre dist/*.tar.gz pytest
+          uv pip install dist/*.tar.gz pytest
 
       - name: Check that the package can be imported
-        run: uv run --with frozendefaultdict --no-project -- python -c "from frozendefaultdict import frozendefaultdict"
+        run: uv run --no-sync -- python -c "from frozendefaultdict import frozendefaultdict"
 
       - name: Run tests
-        run: uv run --no-sync pytest
+        run: uv run --no-sync pytest tests
 
   publish:
     name: Publish Python distribution to PyPI
@@ -121,3 +160,32 @@ jobs:
 
       - name: Publish distribution to PyPI
         run: uv publish --trusted-publishing always
+
+  github-release:
+    name: Tag and create GitHub release
+    needs: [check-version, publish]
+
+    runs-on: ubuntu-slim
+    permissions:
+      contents: write
+
+    env:
+      TAG: v${{ needs.check-version.outputs.version }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out frozendefaultdict
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Create and push tag
+        run: |
+          git tag "$TAG" "$GITHUB_SHA"
+          git push origin "$TAG"
+
+      - name: Create GitHub release with generated notes
+        run: uvx --from 'python-semantic-release>=10,<11' semantic-release changelog --post-to-release-tag "$TAG"

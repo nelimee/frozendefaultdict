@@ -29,3 +29,10 @@ files = "src/**/*.py,tests/**/*.py"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+tag_format = "v{version}"
+commit_parser = "conventional"
+allow_zero_version = true
+major_on_zero = true
