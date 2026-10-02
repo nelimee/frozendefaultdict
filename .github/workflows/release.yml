@@ -101,6 +101,7 @@ jobs:
           path: ./dist/
 
       - name: Install the package
+        shell: bash
         run: |
           uv venv --python ${{ matrix.python-version }}
           uv pip install --resolution ${{ matrix.dependency-resolution }} dist/*.whl "pytest$PYTEST_VERSION_SPECIFIER"
@@ -133,6 +134,7 @@ jobs:
           path: ./dist/
 
       - name: Install package
+        shell: bash
         run: |
           uv venv --python 3.11
           uv pip install dist/*.tar.gz "pytest$PYTEST_VERSION_SPECIFIER"
