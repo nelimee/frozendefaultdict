@@ -7,7 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from frozendefaultdict.frozendefaultdict import frozendefaultdict
+from frozendefaultdict.frozendefaultdict import (
+    NoDefaultValueProvidedError,
+    frozendefaultdict,
+)
 
 
 class TestConstruction:
@@ -51,8 +54,9 @@ class TestConstruction:
 
     def test_no_default_value(self):
         fdd = frozendefaultdict({"a": 1})
-        assert fdd.default_value is None
         assert not fdd.has_default_value
+        with pytest.raises(NoDefaultValueProvidedError):
+            _ = fdd.default_value
 
 
 class TestGetItem:
@@ -207,10 +211,6 @@ class TestHasDefaultValue:
         fdd = frozendefaultdict()
         assert not fdd.has_default_value
 
-    def test_no_default_explicit(self):
-        fdd = frozendefaultdict(default_value=None)
-        assert not fdd.has_default_value
-
 
 class TestCopy:
     def test_copy_method(self):
@@ -282,7 +282,7 @@ class TestMapValues:
         fdd = frozendefaultdict({"a": 1})
         result = fdd.map_values(str)
         assert result["a"] == "1"
-        assert result.default_value is None
+        assert not result.has_default_value
 
 
 class TestMapKeysIfPresent:
