@@ -17,7 +17,7 @@ assert fdd.default_value is None
 assert fdd == frozendefaultdict({}, default_value=None)
 ```
 
-Now, the following behaviour is implemented:
+Now, the above raises a `NoDefaultValueProvidedError` at line 3 when `fdd.default_value` is called. Instead, the following behaviour is implemented:
 
 ```py
 fdd = frozendefaultdict({})
@@ -25,7 +25,7 @@ assert not fdd.has_default_value
 # The following raises a NoDefaultValueProvidedError exception
 # fdd.default_value
 none_default = frozendefaultdict({}, default_value=None)
-assert not (fdd == none_default)
+assert fdd != none_default
 assert none_default.default_value is None
 ```
 
