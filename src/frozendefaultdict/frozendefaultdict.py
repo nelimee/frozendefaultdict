@@ -176,16 +176,6 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
             mapping[self_key] = self_value
         return frozendefaultdict(mapping, default_value=self._default_value)
 
-    def __ior__(self, other: Mapping[Kp, Vp]) -> frozendefaultdict[K | Kp, V_co | Vp]:
-        """Merge with ``other``, returning a new :class:`frozendefaultdict`.
-
-        This method has the same semantic has ``dict.__ior__`` (``self |= other``). In
-        particular, keys that appear in both ``self`` and ``other`` will be associated
-        to the value in ``other`` (``other`` overwrites ``self``). This also applies to
-        the stored ``default_value``.
-        """
-        return self.__or__(other)
-
     def __hash__(self) -> int:
         return hash((frozenset(self.items()), self._default_value))
 
