@@ -29,6 +29,28 @@ assert fdd != none_default
 assert none_default.default_value is None
 ```
 
+#### Removal of `frozendefaultdict.copy` and `frozendefaultdict.deepcopy`
+
+The methods `frozendefaultdict.__copy__` and `frozendefaultdict.__deepcopy__` are already implemented and fulfil the same purpose while being more idiomatic. `frozendefaultdict.copy` and `frozendefaultdict.deepcopy` were only duplicating the implementation of `frozendefaultdict.__copy__` and `frozendefaultdict.__deepcopy__`, so they have been removed. 
+
+The following code
+
+```py
+fdd = frozendefaultdict({})
+fdd_copy = fdd.copy()
+fdd_deep = fdd.deepcopy()
+```
+
+should now be replaced with
+
+```py
+from copy import copy, deepcopy
+
+fdd = frozendefaultdict({})
+fdd_copy = copy(fdd)
+fdd_deep = deepcopy(fdd)
+```
+
 ### Features
 
 - Default value of a `frozendefaultdict` can now be `None`.

@@ -202,14 +202,6 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
             self._default_value == other._default_value
         ) and self._dict == other._dict
 
-    def copy(self) -> frozendefaultdict[K, V_co]:
-        """Return a copy of ``self``.
-
-        Because ``self`` is immutable, this method returns ``self`` without actually
-        copying.
-        """
-        return self
-
     def __copy__(self) -> frozendefaultdict[K, V_co]:
         """Return a copy of ``self``.
 
@@ -217,12 +209,6 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
         copying.
         """
         return self
-
-    def deepcopy(self) -> frozendefaultdict[K, V_co]:
-        """Return a deep-copy of ``self``."""
-        return frozendefaultdict[K, V_co](
-            deepcopy(self._dict), default_value=deepcopy(self._default_value)
-        )
 
     def __deepcopy__(self, memo: dict[int, Any]) -> frozendefaultdict[K, V_co]:
         """Return a deep-copy of ``self``."""
