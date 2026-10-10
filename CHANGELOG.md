@@ -2,6 +2,37 @@
 
 ## Unreleased
 
+### Breaking changes
+
+#### Default value interface
+
+The handling of default values have been reworked to allow `None` values. Now, if the user does not provide a default value when constructing the `frozendefaultdict`, calling the `.default_value` property raises an exception. The value `None` is not used as a sentinel to mean "no default value" any more, and so can be used as a regular default value.
+
+Previously, the following interface was possible:
+
+```py
+fdd = frozendefaultdict({})
+assert not fdd.has_default_value
+assert fdd.default_value is None
+assert fdd == frozendefaultdict({}, default_value=None)
+```
+
+Now, the above raises a `NoDefaultValueProvidedError` at line 3 when `fdd.default_value` is called. Instead, the following behaviour is implemented:
+
+```py
+fdd = frozendefaultdict({})
+assert not fdd.has_default_value
+# The following raises a NoDefaultValueProvidedError exception
+# fdd.default_value
+none_default = frozendefaultdict({}, default_value=None)
+assert fdd != none_default
+assert none_default.default_value is None
+```
+
+### Features
+
+- Default value of a `frozendefaultdict` can now be `None`.
+
 ## `v0.1.0`
 
 ### Features

@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from copy import deepcopy
-from typing import Any, TypeVar
+from dataclasses import dataclass
+from typing import Any, Final, TypeVar
 
 from typing_extensions import override
 
@@ -16,6 +17,18 @@ K = TypeVar("K", bound=Hashable)
 Kp = TypeVar("Kp", bound=Hashable)
 V_co = TypeVar("V_co", covariant=True)
 Vp = TypeVar("Vp")
+
+
+@dataclass(frozen=True)
+class _NoDefaultProvided:
+    pass
+
+
+_NO_DEFAULT_PROVIDED: Final = _NoDefaultProvided()
+
+
+class NoDefaultValueProvidedError(RuntimeError):
+    pass
 
 
 class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
@@ -34,7 +47,7 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
     :class:`frozendefaultdict` instance, but any modification to keys or values will be.
     It is the user responsibility to ensure that keys are not mutated.
 
-    Examples::
+    Examples:
 
         >>> mapping = {"a": 1, "b": 2, "c": {0: 1}}
         >>> fdd = frozendefaultdict(mapping, default_value=0)
@@ -56,19 +69,18 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
     Args:
         arg: Initial data, either a mapping or an iterable of ``(key, value)`` pairs.
             Keys absent from ``arg`` will be implicitly associated with
-            ``default_value`` if it is not ``None``. Keys and values are not copied, it
+            ``default_value`` if it is provided. Keys and values are not copied, it
             is the responsibility of the user to ensure that keys are not mutated.
         default_value: Value returned (without copying) when a key not present in
-            ``arg`` is queried. If ``None``, missing-key access raises
+            ``arg`` is queried. If not provided, missing-key access raises
             :class:`KeyError`.
-
     """
 
     def __init__(
         self,
         arg: Mapping[K, V_co] | Iterable[tuple[K, V_co]] | None = None,
         *,
-        default_value: V_co | None = None,
+        default_value: V_co | _NoDefaultProvided = _NO_DEFAULT_PROVIDED,
     ) -> None:
         super().__init__()
         self._dict: dict[K, V_co] = dict(arg) if arg is not None else {}
@@ -99,21 +111,21 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
         """Return the default value, or raise :class:`KeyError`.
 
         Called by :meth:`__getitem__` when ``key`` is not in the mapping. Returns
-        ``default_value`` (without copying) if it is not ``None``, else raises
-        :class:`KeyError`.
+        ``default_value`` (without copying) if it was set on instance creation, else
+        raises :class:`KeyError`.
 
         Args:
             key: the missing key for which a default value should be generated. Ignored
                 by this implementation, except when raising a :class:`KeyError`.
 
         Raises:
-            KeyError: if ``self._default_value`` is ``None``.
+            KeyError: if ``self._default_value`` was not set at the instance creation.
 
         Returns:
-            The default value ``self._default_value`` as reference if it is not
-            ``None``.
+            The default value ``self._default_value`` as reference if it was not set at
+            instance creation.
         """
-        if self._default_value is None:
+        if isinstance(self._default_value, _NoDefaultProvided):
             raise KeyError(key)
         return self._default_value
 
@@ -137,9 +149,9 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
         return frozendefaultdict(
             mapping,
             default_value=(
-                other.default_value
+                other._default_value
                 if isinstance(other, frozendefaultdict)
-                else self.default_value
+                else self._default_value
             ),
         )
 
@@ -220,19 +232,27 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
         )
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__name__}({self._dict!r}, "
-            f"default_value={self._default_value!r})"
-        )
+        default_string = ""
+        if not isinstance(self._default_value, _NoDefaultProvided):
+            default_string = f", default_value={self._default_value!r}"
+        return f"{self.__class__.__name__}({self._dict!r}{default_string})"
 
     @property
     def has_default_value(self) -> bool:
         """Return ``True`` if a default value was provided."""
-        return self._default_value is not None
+        return not isinstance(self._default_value, _NoDefaultProvided)
 
     @property
-    def default_value(self) -> V_co | None:
-        """The default value, or ``None`` if none was provided."""
+    def default_value(self) -> V_co:
+        """Return the default value provided at instance construction or raise if none
+        was provided.
+
+        Raises:
+            NoDefaultValueProvidedError: if the ``default_value`` argument was not
+                provided at the creation of ``self``.
+        """
+        if isinstance(self._default_value, _NoDefaultProvided):
+            raise NoDefaultValueProvidedError()
         return self._default_value
 
     def map_keys(self, func: Callable[[K], K]) -> frozendefaultdict[K, V_co]:
@@ -262,9 +282,9 @@ class frozendefaultdict(Mapping[K, V_co]):  # noqa: N801
         Returns:
             a new :class:`frozendefaultdict` with transformed values.
         """
-        default_value: Vp | None = None
-        if self.default_value is not None:
-            default_value = func(self.default_value)
+        default_value: Vp | _NoDefaultProvided = _NO_DEFAULT_PROVIDED
+        if not isinstance(self._default_value, _NoDefaultProvided):
+            default_value = func(self._default_value)
         return frozendefaultdict(
             {k: func(v) for k, v in self.items()}, default_value=default_value
         )
