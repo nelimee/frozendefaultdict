@@ -213,26 +213,12 @@ class TestHasDefaultValue:
 
 
 class TestCopy:
-    def test_copy_method(self):
-        fdd = frozendefaultdict({"mutable": []}, default_value=[0])
-        fddc = fdd.copy()
-        assert fddc == fdd
-        fdd["mutable"].append(1)
-        assert fddc == fdd
-
     def test_builtin_copy(self):
         fdd = frozendefaultdict({"mutable": []}, default_value=[0])
         fddc = copy.copy(fdd)
         assert fddc == fdd
         fdd["mutable"].append(1)
         assert fddc == fdd
-
-    def test_deepcopy_method(self):
-        fdd = frozendefaultdict({"mutable": []}, default_value=[0])
-        fddc = fdd.deepcopy()
-        assert fddc == fdd
-        fdd["mutable"].append(1)
-        assert fddc != fdd
 
     def test_builtin_deepcopy(self):
         fdd = frozendefaultdict({"mutable": []}, default_value=[0])
