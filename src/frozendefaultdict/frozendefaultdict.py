@@ -21,7 +21,17 @@ Vp = TypeVar("Vp")
 
 @dataclass(frozen=True)
 class _NoDefaultProvided:
-    pass
+    """This class exists as a replacement to Python 3.15 ``sentinel``.
+
+    Python 3.15 introduced the ``sentinel`` builtin (see PEP 661
+    https://peps.python.org/pep-0661/ and the official documentation
+    https://docs.python.org/3.15/builtins/functions.html#sentinel). Because
+    ``frozendefaultdict`` supports Python 3.11 and above, it cannot yet use Python 3.15
+    features.
+
+    ``typing_extensions.sentinel`` exists, but type checkers do not seem to support it
+    well yet.
+    """
 
 
 _NO_DEFAULT_PROVIDED: Final = _NoDefaultProvided()
