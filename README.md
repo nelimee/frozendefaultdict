@@ -95,6 +95,4 @@ print(fdd7)
 
 # Usage of LLMs
 
-A LLM has been used at the very beginning of the project to generate some tests. Since then the tests have been extensively modified (some were added, some were removed, some existings tests were modified).
-
-Everything else (including the documentation and the actual package code) has been crafted with love and passion by a human and no LLM has been involved in their development.
+A LLM has been used at the very beginning of the project to generate some tests. None of the tests written by an LLM are present in the code base any more. All the code you see in this repository (including the actual code, documentation and tests) have been crafted with love and passion by a human and no LLM has been involved in their development.
