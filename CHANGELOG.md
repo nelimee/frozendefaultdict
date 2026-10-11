@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## Unreleased
+## `v0.2.0`
+
+This is the first breaking release of the history of `frozendefaultdict`. It fixes a few inconsistencies in the API and allows `None` default values by using another value to indicate the absence of user-provided default value.
 
 ### Breaking changes
 
@@ -52,8 +54,14 @@ fdd_deep = deepcopy(fdd)
 ```
 
 ### Features
+- Default value of a `frozendefaultdict` can now be `None` ([`fb04f5f`](https://github.com/nelimee/frozendefaultdict/commit/fb04f5f7e47e7cbf4e26efd72582f57cc968d5fc))
 
-- Default value of a `frozendefaultdict` can now be `None`.
+### Bug Fixes
+- Remove `__ior__` explicit implementation ([`2d63e1c`](https://github.com/nelimee/frozendefaultdict/commit/2d63e1c0004a54c8fa3f7486d4411e6c6b7d16e3))
+- Remove `copy` and `deepcopy` methods ([`c08372f`](https://github.com/nelimee/frozendefaultdict/commit/c08372fe07a24931b1375b754b0c8001f966135e))
+
+### Documentation
+- Most of the unit-tests are now done in the docstring and run with `pytest` using `doctest` ([`2148a2e`](https://github.com/nelimee/frozendefaultdict/commit/2148a2e57b761853fdb2b67d29b768503dd6b5ea))
 
 ## `v0.1.0`
 
